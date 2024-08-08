@@ -1,5 +1,11 @@
 import { Message } from "../models/messageSchema.js";
+import bcrypt from "bcrypt";
+// const bcrypt = require('bcrypt');
+import {UserModel} from "../database/User.js";
+import jwt from "jsonwebtoken";
+// import jwt from 'jsonwebtoken';
 
+// const { sign, verify } = jwt;
 export const sendMessage = async(req,res)=>{
     try {
         const {name, email, subject, message} = req.body;
@@ -40,5 +46,67 @@ export const sendMessage = async(req,res)=>{
             success: false,
             message: "Unknown Error",
         });
+    }
+};
+
+
+export const signup = async(req,res)=>{
+    try {
+        const {fname, lname, email, password} = req.body;
+        const user = await UserModel.findOne({email});
+        if(user){
+            return req.status(409)
+                .json({message: 'User already exist, please login', success: false })
+        }
+        const userModel = new UserModel({fname, lname, email, password});
+        userModel.password = await bcrypt.hash(password, 10);
+        await userModel.save();
+        res.status(201)
+            .json({
+                message: "Signup successfully",
+                success: true
+            })
+    } catch (error) {
+       res.status(500)
+        .json({
+            message: "Internal server error",
+            success: false
+        })
+    }
+};
+
+export const login = async(req,res)=>{
+    try {
+        const {email, password} = req.body;
+        const user = await UserModel.findOne({email});
+        const errorMsg = "Authentication failed. Email or Password is wrong";
+        if(!user){
+            return req.status(403)
+                .json({message:errorMsg , success: false })
+        }
+        const isPassEqual = await bcrypt.compare(password, user.password);
+        if(!isPassEqual){
+            return req.status(403)
+                .json({message:errorMsg , success: false })
+        }
+        const jwtToken = jwt.sign(
+            {email: user.email, _id: user._id},
+            process.env.JWT_SECRET,
+            {expiresIn: '24h'}
+        );
+        res.status(200)
+            .json({
+                message: "Login successfully",
+                success: true,
+                jwtToken,
+                email, 
+                name: user.fname
+            })
+    } catch (error) {
+       res.status(500)
+        .json({
+            message: "Internal server error",
+            success: false
+        })
     }
 };

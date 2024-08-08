@@ -3,11 +3,13 @@ import { dbConnection } from "./database/dbConnection.js";
 import { configDotenv } from "dotenv";
 import messageRouter from "./router/messageRouter.js";
 import cors from "cors";
+import bodyParser from "body-parser";
 
 const app = express();
 
 configDotenv({path: "./config/config.env"});
 
+app.use(bodyParser.json());
 app.use(cors({
     origin: [process.env.FRONTEND_URL],
     methods: ["POST"],
