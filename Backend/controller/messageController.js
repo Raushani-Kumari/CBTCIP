@@ -69,7 +69,7 @@ export const signup = async(req,res)=>{
     } catch (error) {
        res.status(500)
         .json({
-            message: "Internal server error",
+            message: "Authentication Failed",
             success: false
         })
     }
@@ -79,7 +79,7 @@ export const login = async(req,res)=>{
     try {
         const {email, password} = req.body;
         const user = await UserModel.findOne({email});
-        const errorMsg = "Authentication failed. Email or Password is wrong";
+        const errorMsg = "Authentication Failed. Email or Password is wrong";
         if(!user){
             return req.status(403)
                 .json({message:errorMsg , success: false })
@@ -105,7 +105,7 @@ export const login = async(req,res)=>{
     } catch (error) {
        res.status(500)
         .json({
-            message: "Internal server error",
+            message: "Authentication Failed",
             success: false
         })
     }
